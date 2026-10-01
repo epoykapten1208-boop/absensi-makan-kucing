@@ -1,0 +1,38 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Admin Meong</title><link rel="stylesheet" href="style.css"></head><body>
+<main class="wrap" id="login"><section class="card"><div class="cat">😺</div><h1>Login Admin</h1><p class="sub">Masuk untuk melihat dashboard absen makan.</p>
+<label for="u">Username</label><input type="text" id="u" autocomplete="username">
+<label for="p">Password</label><input type="password" id="p" autocomplete="current-password">
+<button class="btn" id="masuk">Masuk 🐾</button><div class="msg err" id="lmsg" role="alert"></div>
+<a class="link" href="index.html">Kembali ke halaman absen</a></section></main>
+<main class="wrap wide" id="dash" style="display:none"><section class="card">
+<div class="top"><div><h1>🐱 Dashboard Absen Makan</h1><p class="sub" id="total" style="margin:0"></p></div>
+<div><button class="btn sm grey" id="muat">Muat ulang</button> <button class="btn sm red" id="keluar">Keluar</button></div></div>
+<div class="grid" id="grid"></div></section></main>
+<div class="modal" id="foto"><div class="card"><img id="big" alt="Foto bukti"><div class="row"><button class="btn sm" id="tutup1">Tutup</button></div></div></div>
+<div class="modal" id="hapus"><div class="card"><div class="cat">🙀</div><h1>Hapus data ini?</h1><p id="hnama"></p>
+<div class="row"><button class="btn sm grey" id="batal">Batal</button><button class="btn sm red" id="yakin">Ya, hapus</button></div></div></div>
+<script>
+const $=i=>document.getElementById(i);let tok=localStorage.getItem('tok'),delId=null;
+const H=()=>({'Content-Type':'application/json',Authorization:'Bearer '+tok});
+const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ico={pagi:'🌅',siang:'☀️',malam:'🌙'};
+function tampil(on){$('login').style.display=on?'none':'block';$('dash').style.display=on?'block':'none'}
+async function muat(){const r=await fetch('/api/admin/absensi',{headers:H()});
+if(r.status==401){localStorage.removeItem('tok');tok=null;return tampil(false)}
+const d=await r.json();tampil(true);$('total').textContent=d.length+' data tercatat ';
+$('grid').innerHTML=d.length?d.map(x=>`<article class="item"><img src="${x.foto}" alt="Bukti ${esc(x.nama)}" data-f="${x.id}"><div><b>${esc(x.nama)}</b>
+<span class="tag ${x.sesi}">${ico[x.sesi]} ${x.sesi}</span><small>🕒 ${x.waktu}</small><button class="btn sm red" data-d="${x.id}" data-n="${esc(x.nama)}">Hapus</button></div></article>`).join('')
+:'<div class="empty" style="grid-column:1/-1">😴 Belum ada yang absen makan.</div>';
+$('grid').querySelectorAll('img').forEach(i=>i.onclick=()=>{$('big').src=i.src;$('foto').classList.add('show')});
+$('grid').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{delId=b.dataset.d;$('hnama').textContent='Absen milik '+b.dataset.n+' akan dihapus permanen.';$('hapus').classList.add('show')})}
+$('masuk').onclick=async()=>{$('lmsg').textContent='';const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('u').value,password:$('p').value})});
+const d=await r.json();if(!r.ok){$('lmsg').textContent=d.error;return}tok=d.token;localStorage.setItem('tok',tok);muat()};
+$('p').onkeydown=e=>{if(e.key=='Enter')$('masuk').click()};
+$('keluar').onclick=()=>{localStorage.removeItem('tok');tok=null;tampil(false)};$('muat').onclick=muat;
+$('tutup1').onclick=()=>$('foto').classList.remove('show');$('batal').onclick=()=>$('hapus').classList.remove('show');
+$('yakin').onclick=async()=>{await fetch('/api/admin/absensi/'+delId,{method:'DELETE',headers:H()});$('hapus').classList.remove('show');muat()};
+if(tok)muat();
+</script>
+ <script src="meow.js"></script>
+</body></html>

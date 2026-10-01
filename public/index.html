@@ -1,0 +1,32 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Absen Makan Meong</title><link rel="stylesheet" href="style.css"></head><body>
+<main class="wrap"><section class="card">
+<div class="cat">🐱</div><h1>Absen Makan Khusus Untuk Epoy</h1><p class="sub">Isi nama, pilih sesi makan, lalu kirim foto buktinya.</p>
+<label for="nama">Nama</label><input type="text" id="nama" maxlength="80" placeholder="Nama lengkap" autocomplete="name">
+<label>Sesi makan</label><div class="sesi">
+<label><input type="radio" name="sesi" value="pagi"><span>🌅 Pagi</span></label>
+<label><input type="radio" name="sesi" value="siang"><span>☀️ Siang</span></label>
+<label><input type="radio" name="sesi" value="malam"><span>🌙 Malam</span></label></div>
+<label>Foto bukti</label><label class="file">📸 Ketuk untuk ambil / pilih foto<input type="file" id="foto" accept="image/*"></label>
+<img id="prev" alt="Pratinjau foto">
+<button class="btn" id="kirim">Kirim absen 🐾</button><div class="msg" id="msg" role="status"></div>
+<a class="link" href="admin.html">Masuk sebagai admin</a></section></main>
+<div class="modal" id="ok"><div class="card"><div class="cat">😸</div><h1>Berhasil terkirim!</h1><p>Absen makanmu sudah tercatat.</p>
+<div class="row"><button class="btn sm" onclick="document.getElementById('ok').classList.remove('show')">Tutup</button></div></div></div>
+<script>
+const $=i=>document.getElementById(i);let foto='';
+function kompres(file){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const im=new Image();im.onerror=no;
+im.onload=()=>{const s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;
+c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.75))};im.src=r.result};r.readAsDataURL(file)})}
+$('foto').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{foto=await kompres(f);$('prev').src=foto;$('prev').style.display='block'}catch{foto='';$('msg').className='msg err';$('msg').textContent='Foto tidak bisa dibaca'}};
+$('kirim').onclick=async()=>{const m=$('msg');m.className='msg';m.textContent='';
+const nama=$('nama').value.trim(),sesi=(document.querySelector('[name=sesi]:checked')||{}).value;
+if(!nama||!sesi||!foto){m.className='msg err';m.textContent='Nama, sesi makan, dan foto bukti wajib diisi';return}
+$('kirim').disabled=true;m.textContent='Mengirim...';
+try{const r=await fetch('/api/absen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nama,sesi,foto})});const d=await r.json();
+if(!r.ok)throw new Error(d.error);$('ok').classList.add('show');$('nama').value='';$('foto').value='';foto='';$('prev').style.display='none';
+document.querySelectorAll('[name=sesi]').forEach(x=>x.checked=false);m.textContent=''}
+catch(e){m.className='msg err';m.textContent=e.message}$('kirim').disabled=false};
+</script>
+   <script src="meow.js"></script>
+</body></html>
