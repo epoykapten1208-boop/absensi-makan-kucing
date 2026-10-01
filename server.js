@@ -1,11 +1,21 @@
 require('dotenv').config();
 const express = require('express'), crypto = require('crypto'), { Pool } = require('pg');
+const path = require('path');
 const app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 const SECRET = process.env.SECRET || 'secret', SESI = ['pagi', 'siang', 'malam'];
 
 app.use(express.json({ limit: '6mb' }));
 app.use(express.static('public'));
+
+// Rute eksplisit agar halaman utama dan admin langsung terbaca di Vercel
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 
 const sign = (p) => { const b = Buffer.from(JSON.stringify(p)).toString('base64url'); return b + '.' + crypto.createHmac('sha256', SECRET).update(b).digest('base64url'); };
 function auth(req, res, next) {
