@@ -17,7 +17,7 @@
 const $=i=>document.getElementById(i);let foto='';
 function kompres(file){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const im=new Image();im.onerror=no;
 im.onload=()=>{const s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;
-c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.75))};im.src=r.result};r.readAsDataURL(file)})}
+c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.6))};im.src=r.result};r.readAsDataURL(file)})}
 $('foto').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{foto=await kompres(f);$('prev').src=foto;$('prev').style.display='block'}catch{foto='';$('msg').className='msg err';$('msg').textContent='Foto tidak bisa dibaca'}};
 $('kirim').onclick=async()=>{const m=$('msg');m.className='msg';m.textContent='';
 const nama=$('nama').value.trim(),sesi=(document.querySelector('[name=sesi]:checked')||{}).value;
