@@ -3,6 +3,7 @@ const express = require('express'), crypto = require('crypto'), { Pool } = requi
 const app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 const SECRET = process.env.SECRET || 'secret', SESI = ['pagi', 'siang', 'malam'];
+
 app.use(express.json({ limit: '6mb' }));
 app.use(express.static('public'));
 
@@ -46,7 +47,14 @@ app.delete('/api/admin/absensi/:id', auth, async (req, res) => {
   res.json({ ok: true });
 });
 
+// Otomatis buat tabel jika belum ada
 pool.query(`CREATE TABLE IF NOT EXISTS absensi (id SERIAL PRIMARY KEY, nama TEXT NOT NULL, sesi TEXT NOT NULL,
-  foto TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`)
-  .then(() => app.listen(process.env.PORT || 3000, () => console.log('Jalan di http://localhost:' + (process.env.PORT || 3000))))
-  .catch((e) => { console.error('Gagal konek database:', e.message); process.exit(1); });
+  foto TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`).catch(e => console.error('Gagal buat tabel:', e.message));
+
+// Agar bisa berjalan di Vercel (Serverless) DAN tetap bisa di-run lokal via 'node server.js'
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log('Jalan di http://localhost:' + PORT));
+}
+
+module.exports = app;
