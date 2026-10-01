@@ -6,7 +6,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejec
 const SECRET = process.env.SECRET || 'secret', SESI = ['pagi', 'siang', 'malam'];
 
 app.use(express.json({ limit: '6mb' }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rute eksplisit agar halaman utama dan admin langsung terbaca di Vercel
 app.get('/', (req, res) => {
